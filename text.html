@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;500&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            /* background-color: #0d021a; Không cần thiết nếu #effect-container chiếm toàn bộ */
+            font-family: 'Quicksand', sans-serif;
+            color: white;
+            overflow: hidden; /* Đảm bảo không có scrollbar do hiệu ứng */
+        }
+
+        /* Đổi lại tên hoặc dùng tên bạn đang có, ví dụ #effect-container */
+        #effect-container {
+            width: 100vw;  /* Chiếm toàn bộ chiều rộng màn hình */
+            height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
+            background-color: #0d021a; /* Màu nền của hiệu ứng */
+            overflow: hidden; /* Rất quan trọng: ẩn các phần tử tràn ra ngoài */
+            position: relative; /* Để các .floating-element định vị tuyệt đối bên trong */
+            /* Bỏ các thuộc tính giả lập khung điện thoại:
+               border-radius, box-shadow, border, width & height cố định
+            */
+        }
+
+        .floating-element {
+            position: absolute;
+            white-space: nowrap;
+            opacity: 0;
+            animation: fadeInDriftAndFadeOut 6s linear forwards;
+            pointer-events: none;
+        }
+
+        .text-main {
+            font-family: 'Dancing Script', cursive;
+            font-size: 7vw; /* Sử dụng vw để font co giãn theo chiều rộng màn hình */
+            /* Hoặc bạn có thể giữ em, nhưng giá trị có thể cần lớn hơn một chút */
+            /* font-size: 3.5em; */
+            color: #ffb3e6;
+            text-shadow:
+                0 0 7px #ff80df,
+                0 0 15px #ff80df,
+                0 0 25px #ff4dd2,
+                0 0 35px #ff4dd2,
+                0 0 45px #ff1ac6,
+                0 0 60px #d9009f;
+        }
+
+        .text-secondary {
+            font-size: 3.5vw; /* Sử dụng vw */
+            /* font-size: 1.5em; */
+            color: #ffe6f9;
+            font-style: italic;
+            text-shadow:
+                0 0 5px #ffb3e6,
+                0 0 10px #ff80df,
+                0 0 15px #ff4dd2;
+        }
+
+        .emoji-heart {
+            font-size: 5vw; /* Sử dụng vw */
+            /* font-size: 2.5em; */
+            color: #ff66cc;
+             text-shadow:
+                0 0 7px #ff80df,
+                0 0 15px #ff4dd2,
+                0 0 25px #ff1ac6;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 0.5vw; /* Kích thước sparkle cũng có thể theo vw */
+            height: 0.5vw;
+            max-width: 3px; /* Giới hạn kích thước tối đa của sparkle */
+            max-height: 3px;
+            background-color: rgba(255, 220, 255, 0.7);
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes fadeInDriftAndFadeOut {
+            0% {
+                opacity: 0;
+                transform: translateY(15px) scale(0.9);
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            85% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-25px) scale(0.8);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: Math.random() * 0.5 + 0.3; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="effect-container">
+        <!-- Floating elements and sparkles will be added here by JavaScript -->
+    </div>
+
+    <script>
+        const effectContainer = document.getElementById('effect-container');
+
+        const mainPhrases = [
+"Kimmmmmm",
+            "I Lovs You❤️", // Keeping "Lovs" as you typed
+            "Mỗi ngày mỗi vui vẻ nhá👉👈",
+            "Anh ở đây",
+            "Không được buồn",
+            "Không được khóc",
+            "Iuuuemm❤️❤️"
+        ];
+
+        const secondaryPhrases = [
+            "Kimmmmmm",
+            "I Lovs You❤️", // Keeping "Lovs" as you typed
+            "Mỗi ngày mỗi vui vẻ nhá👉👈",
+            "Anh ở đây",
+            "Không được buồn",
+            "Không được khóc",
+            "Iuuuemm❤️❤️"
+        ];
+
+        const emojis = ["❤️", "🌹", "♡", "💕", "💖", "✨"];
+
+        const elementLifetime = 6000;
+        const maxElements = 50;
+        const maxSparkles = 100; // Có thể tăng nếu màn hình lớn hơn
+
+        function getRandomPosition() {
+            // Vị trí vẫn dựa trên vw và vh của viewport hiện tại
+            const x = Math.random() * 90 + 5;
+            const y = Math.random() * 90 + 5;
+            return { x, y };
+        }
+
+        function createFloatingElement(content, type) {
+            if (effectContainer.childElementCount >= maxElements + maxSparkles) {
+                const elements = Array.from(effectContainer.children);
+                const oldestNonSparkle = elements.find(el => !el.classList.contains('sparkle'));
+                if (oldestNonSparkle) {
+                    oldestNonSparkle.remove();
+                } else {
+                    return;
+                }
+            }
+
+            const element = document.createElement('div');
+            element.classList.add('floating-element');
+            // Không cần set baseFontSize ở đây nữa vì CSS đã dùng vw
+            // hoặc bạn có thể set lại nếu muốn có sự ngẫu nhiên thêm
+            // ví dụ: element.style.fontSize = (Math.random() * 1 + parseFloat(getComputedStyle(element).fontSize) - 0.5) + 'vw';
+
+            switch(type) {
+                case 'main':
+                    element.classList.add('text-main');
+                    break;
+                case 'secondary':
+                    element.classList.add('text-secondary');
+                    break;
+                case 'emoji':
+                    element.classList.add('emoji-heart');
+                    break;
+            }
+            element.textContent = content;
+
+            const { x, y } = getRandomPosition();
+            element.style.left = `${x}vw`;
+            element.style.top = `${y}vh`;
+
+            const durationVariation = (Math.random() * 1.0) - 0.5;
+            element.style.animationDuration = (elementLifetime/1000 + durationVariation) + 's';
+
+            effectContainer.appendChild(element);
+
+            setTimeout(() => {
+                if (element.parentElement) {
+                    element.remove();
+                }
+            }, elementLifetime + durationVariation * 1000 + 200);
+        }
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.classList.add('sparkle');
+
+            sparkle.style.left = `${Math.random() * 100}vw`;
+            sparkle.style.top = `${Math.random() * 100}vh`;
+
+            sparkle.style.animationDelay = Math.random() * 2.5 + 's';
+            sparkle.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+            sparkle.style.opacity = Math.random() * 0.4;
+
+            effectContainer.appendChild(sparkle);
+        }
+
+        for (let i = 0; i < maxSparkles; i++) {
+            createSparkle();
+        }
+
+        setInterval(() => {
+            const phrase = mainPhrases[Math.floor(Math.random() * mainPhrases.length)];
+            createFloatingElement(phrase, 'main');
+        }, 900);
+
+        setInterval(() => {
+            const phrase = secondaryPhrases[Math.floor(Math.random() * secondaryPhrases.length)];
+            createFloatingElement(phrase, 'secondary');
+        }, 650);
+
+        setInterval(() => {
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            createFloatingElement(emoji, 'emoji');
+        }, 450);
+
+        setInterval(() => {
+            if (document.querySelectorAll('#effect-container .sparkle').length < maxSparkles * 0.8) {
+                 for (let i = 0; i < 10; i++) createSparkle();
+            }
+        }, 7000);
+
+    </script>
+
+</body>
+</html>
